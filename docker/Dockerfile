@@ -1,31 +1,23 @@
-# Use a base image with necessary build tools and runtime environments
-FROM debian:buster-slim
+# Starting with an Ubuntu base image
+FROM ubuntu:latest
 
-# Update and install dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    build-essential \
-    cmake \
-    libcurl4-openssl-dev \
-    libev-dev \
-    libmysqlclient-dev \
-    libsqlite3-dev \
-    libthrift-dev \
-    apache2 \
-    php \
-    # ... any other dependencies ...
+    build-essential libev-dev libsqlite-dev libmysqlclient-dev \
+    libboost-all-dev libssl-dev flex bison pkg-config \
+    wget tar cmake
 
-    # Clone the repository
-    RUN git clone https://github.com/pschlan/cron-job.org.git /app
+# Build dependencies
+WORKDIR /deps
+RUN wget https://curl.haxx.se/download/curl-7.78.0.tar.gz && \
+    tar -xzf curl-7.78.0.tar.gz && \
+    cd curl-7.78.0 && ./configure --prefix=/usr/local --with-openssl && make && make install && \
+    cd .. && wget https://archive.apache.org/dist/thrift/0.13.0/thrift-0.13.0.tar.gz && \
+    tar -xzf thrift-0.13.0.tar.gz && \
+    cd thrift-0.13.0 && ./configure --prefix=/usr --enable-tests=no --enable-tutorial=no --with-rs=no --with-swift=no --with-dotnetcore=no --with-d=no --with-csharp=no --with-php=no --with-haskell=no --with-erlang=no --with-go=no --with-java=no --with-python=no --with-py3=no --with-ruby=no --with-nodejs=no --with-c_glib=no --with-cpp=yes && make && make install
 
-# Set the working directory
+# Build chronos
 WORKDIR /app
-
-# Build the project
-RUN mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release .. && make
-
-# Copy or create scripts to start the services
-# COPY start-services.sh /app/start-services.sh
-
-# Set the entry point to start all services
-# ENTRYPOINT ["/app/start-services.sh"]
+COPY . /app
+RUN mkdir build && cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. && make
