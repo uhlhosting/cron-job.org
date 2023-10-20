@@ -2,8 +2,8 @@
 FROM ubuntu:latest
 
 # Install dependencies
-RUN apt-get update && apt-get install -y wget build-essential libev-dev libsqlite-dev libmysqlclient-dev \
-    libboost-all-dev libssl-dev flex bison pkg-config && \
+RUN apt-get update && apt-get install -y build-essential libev-dev libsqlite-dev libmysqlclient-dev \
+    libboost-all-dev libssl-dev flex bison pkg-config cmake && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Build dependencies
